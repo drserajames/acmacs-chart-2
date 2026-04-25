@@ -14,8 +14,8 @@ struct Options : public argv
 {
     Options(int a_argc, const char* const a_argv[], on_error on_err = on_error::exit) : argv() { parse(a_argc, a_argv, on_err); }
 
-    option<str>  antigens_to_remove{*this, 'a', "--antigens", desc{"comma or space separated list of antigen indexes to remove (0-based)"}};
-    option<str>  sera_to_remove{*this, 's', "--sera", desc{"comma or space separated list of serum indexes to remove (0-based)"}};
+    option<str>  antigens_to_remove{*this, 'a', "antigens", desc{"comma or space separated list of antigen indexes to remove (0-based)"}};
+    option<str>  sera_to_remove{*this, 's', "sera", desc{"comma or space separated list of serum indexes to remove (0-based)"}};
     option<bool> remove_egg{*this, "remove-egg", desc{"remove egg antigens and sera"}};
     option<bool> remove_projections{*this, "remove-projections"};
 
