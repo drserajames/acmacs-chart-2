@@ -42,6 +42,7 @@ namespace acmacs::chart
         multiply_antigen_titer_until_column_adjust mult{multiply_antigen_titer_until_column_adjust::yes};
         double randomization_diameter_multiplier{2.0}; // for layout randomizations
         int num_threads{0};                            // 0 - omp_get_max_threads()
+        size_t progress_every{0};                      // emit "M/N restarts done" every K completions; 0 = silent (Issue #42)
 
     }; // struct optimization_options
 

@@ -33,6 +33,7 @@ struct Options : public argv
     option<str>    disconnect_antigens{*this, "disconnect-antigens", dflt{""}, desc{"comma or space separated list of antigen/point indexes (0-based) to disconnect for the new projections"}};
     option<str>    disconnect_sera{*this, "disconnect-sera", dflt{""}, desc{"comma or space separated list of serum indexes (0-based) to disconnect for the new projections"}};
     option<int>    threads{*this, "threads", dflt{0}, desc{"number of threads to use for optimization (omp): 0 - autodetect, 1 - sequential"}};
+    option<size_t> progress_every{*this, "progress-every", dflt{0UL}, desc{"emit progress to stderr every K completed restarts (0 = silent, the historical default; Issue #42)"}};
     option<str_array> verbose{*this, 'v', "verbose", desc{"comma separated list (or multiple switches) of enablers"}};
 
     argument<str>  source_chart{*this, arg_name{"source-chart"}, mandatory};
@@ -70,6 +71,7 @@ int main(int argc, char* const argv[])
             const auto dimension_annealing = acmacs::chart::use_dimension_annealing_from_bool(opt.dimension_annealing); // && method != acmacs::chart::optimization_method::optimlib_differential_evolution);
             options.disconnect_too_few_numeric_titers = opt.no_disconnect_having_few_titers ? acmacs::chart::disconnect_few_numeric_titers::no : acmacs::chart::disconnect_few_numeric_titers::yes;
             options.num_threads = opt.threads;
+            options.progress_every = *opt.progress_every;
             chart.relax(acmacs::chart::number_of_optimizations_t{*opt.number_of_optimizations}, *opt.minimum_column_basis, acmacs::number_of_dimensions_t{*opt.number_of_dimensions}, dimension_annealing, options, disconnected);
             projections.sort();
             options.precision = acmacs::chart::optimization_precision::fine;

@@ -2,6 +2,8 @@
 #include <functional>
 #include <limits>
 #include <algorithm>
+#include <atomic>
+#include <chrono>
 
 #include "acmacs-base/log.hh"
 #include "acmacs-base/omp.hh"
@@ -346,6 +348,11 @@ void ChartModify::relax(number_of_optimizations_t number_of_optimizations, Minim
     const int num_threads = options.num_threads <= 0 ? omp_get_max_threads() : options.num_threads;
     const int slot_size = number_of_antigens() < 1000 ? 4 : 1;
 #endif
+    // Issue #42: optional per-K-restart progress emit. progress_every==0 keeps the historical silent default.
+    const size_t progress_every = options.progress_every;
+    const size_t total_restarts = projections.size();
+    const auto progress_t0 = std::chrono::steady_clock::now();
+    std::atomic<size_t> progress_done{0};
 #pragma omp parallel for default(shared) num_threads(num_threads) firstprivate(stress) schedule(static, slot_size)
     for (size_t p_no = 0; p_no < projections.size(); ++p_no) {
         auto projection = projections[p_no];
@@ -368,6 +375,14 @@ void ChartModify::relax(number_of_optimizations_t number_of_optimizations, Minim
         }
         projection->transformation_reset();
         AD_LOG(acmacs::log::report_stresses, "{:3d} {:.4f}", p_no, *projection->stress_);
+        if (progress_every > 0) {
+            const size_t done_now = progress_done.fetch_add(1, std::memory_order_relaxed) + 1;
+            if (done_now % progress_every == 0 || done_now == total_restarts) {
+                const auto secs = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - progress_t0).count();
+#pragma omp critical(chart_relax_progress_emit)
+                AD_PRINT("> chart-relax-grid: {}/{} restarts done in {}m{:02d}s", done_now, total_restarts, secs / 60, static_cast<int>(secs % 60));
+            }
+        }
     }
 
 } // ChartModify::relax
